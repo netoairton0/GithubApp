@@ -36,7 +36,7 @@ function Button({style, title, subtitle, destination, inputText, navigation, ico
       <View style={styles.navigator_button}>
         <TouchableOpacity
           style={{backgroundColor: 'white', justifyContent: 'center', alignItems: 'center'}} 
-          onPress={() => navigation.navigate(destination , {inputText})}>
+          onPress={() => navigation.navigate(destination , {param: inputText})}>
             <MaterialIcons name="keyboard-arrow-right" size={30} color="black" />
         </TouchableOpacity>
       </View>
@@ -46,13 +46,13 @@ function Button({style, title, subtitle, destination, inputText, navigation, ico
 
 function BioScreen({ navigation, route}){ 
 
-  const { bio } = route.params;
+  const { param } = route.params;
 
   return(
     <SafeAreaView>
       <View style={styles.secundary_screen}>
         <Text>Bio:</Text>
-        <Text>{bio}</Text>
+        <Text>{param}</Text>
       </View>
     </SafeAreaView>
   );
@@ -60,16 +60,16 @@ function BioScreen({ navigation, route}){
 
 function OrgsScreen({ navigation, route}){
 
-  const { inputText } = route.params;
+  const { param } = route.params;
   const [orgs, setOrgs] = React.useState([]);
 
   React.useEffect(() => {
-    fetch("https://api.github.com/users/" + {inputText} + "/orgs")
+    fetch("https://api.github.com/users/" + param + "/orgs")
       .then((response) => response.json())
       .then((data) => {
         setOrgs(data);
       })
-  }, [{inputText}]);
+  }, [{param}]);
 
   return(
     <SafeAreaView>
@@ -79,7 +79,7 @@ function OrgsScreen({ navigation, route}){
           orgs.map((item) => <View>
             <Text>{item.name}</Text>
             </View>)
-          : null
+          : <Text>Nenhuma organização encontrada!!</Text>
         }
       </View>
     </SafeAreaView>
@@ -88,16 +88,16 @@ function OrgsScreen({ navigation, route}){
 
 function RepositoriosScreen({ navigation, route}){
 
-  const { inputText } = route.params;
+  const { param } = route.params;
   const [repos, setRepos] = React.useState([]);
 
   React.useEffect(() => {
-    fetch("https://api.github.com/users/" + {inputText} + "/repos")
+    fetch("https://api.github.com/users/" + param + "/repos")
       .then((response) => response.json())
       .then((data) => {
         setRepos(data);
       })
-  }, [{inputText}]);
+  }, [{param}]);
 
   return(
     <SafeAreaView>
@@ -107,25 +107,25 @@ function RepositoriosScreen({ navigation, route}){
           repos.map((item) => <View>
             <Text>{item.name}</Text>
             </View>)
-          : null
+          : <Text>Nenhum repositorio encontrado!!</Text>
         }
       </View>
     </SafeAreaView>
   );
 }
 
-function SeguidoresScreen(navigation, route){
+function SeguidoresScreen({ navigation, route }){
 
-  const { inputText } = route.params;
+  const { param } = route.params;
   const [seg, setSeg] = React.useState([]);
 
   React.useEffect(() => {
-    fetch("https://api.github.com/users/" + {inputText} + "/followers")
+    fetch("https://api.github.com/users/" + param + "/followers")
       .then((response) => response.json())
       .then((data) => {
         setSeg(data);
       })
-  }, [{inputText}]);
+  }, [{param}]);
 
   return(
     <SafeAreaView>
@@ -135,7 +135,7 @@ function SeguidoresScreen(navigation, route){
           seg.map((item) => <View>
             <Text>{item.login}</Text>
             </View>)
-          : null
+          : <Text>Nenhum seguidor encontrado!!</Text>
         }
       </View>
     </SafeAreaView>
@@ -148,7 +148,7 @@ function HomeScreen({ navigation }) {
   const [login, setLogin] = React.useState(null);
   const [avatar, setAvatar] = React.useState(null);
   const [input, setInput] = React.useState("");
-  const [bio, setBio] = React.useState(null);
+  const [bio, setBio] = React.useState("");
 
   React.useEffect(() => { 
     fetch("https://api.github.com/users/" + input)
@@ -167,16 +167,24 @@ function HomeScreen({ navigation }) {
         <View>
           <Image source={{uri: avatar}}
                 style={{width: 125, height: 125, borderRadius: 40}} />
+          <View style={styles.input_icon}>
+            <FontAwesome name="search" size={24} color="white" />
+          </View>
         </View>
         <TextInput
           style={styles.input}
+          placeholder='Digite o login desejado'
+          placeholderTextColor={'black'}
           onChangeText={(text) => {setInput(text)}}
         />
         <Text style={{fontSize: 25, fontWeight: 'bold'}}>{name}</Text>
-        <Text style={{fontSize: 16, color: 'grey', fontWeight: 500}}>@{login}</Text>
+        {
+          input != "" ? <Text style={{fontSize: 16, color: 'grey', fontWeight: 500}}>@{login}</Text>
+          : null
+        }
       </View>
       <View style={styles.infos}>
-        <Button style={styles.button_top} title='Bio' subtitle= 'Um pouco sobre o usuário' destination="Bio" inputText={bio} navigation={navigation} icon = 'bio'></Button>
+        <Button style={styles.button_top} title='Bio' subtitle= 'Um pouco sobre o usuário' destination="Bio" inputText= {bio} navigation={navigation} icon = 'bio'></Button>
         <Button style={styles.button_2} title='Orgs' subtitle= 'Organizações que o usuário faz parte' destination="Orgs" inputText={input} navigation={navigation} icon = 'orgs'></Button>
         <Button style={styles.button_3} title='Repositórios' subtitle= 'Lista contendo todos os repositórios' destination="Repos" inputText={input} navigation={navigation} icon = 'repos'></Button>
         <Button style={styles.button_bottom} title='Seguidores' subtitle= 'Lista de seguidores' destination="Seguidores" inputText={input} navigation={navigation} icon = 'followers'></Button>
@@ -189,10 +197,7 @@ function HomeScreen({ navigation }) {
               setName(null)
               setLogin(null)
               setAvatar(null)
-              setBio(null)
-              setOrgs(null)
-              setRepos(null)
-              setSeg(null)
+              setBio("")
               setInput("")
             }}>
               <View style={{flexDirection: 'row'}}>
@@ -239,7 +244,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     justifyContent: 'space-evenly',
     alignItems: 'stretch',
-    margin: 20,
+    marginLeft: 20,
+    marginRight: 20,
+    marginBottom:25,
     borderRadius: 20,
     elevation: 5
   },
@@ -298,9 +305,22 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
   },
   input: {
-    height: 40, 
+    backgroundColor: 'grey',
+    borderRadius: 10,
+    height: 30, 
     borderWidth:1,
-    width: 100,
+    width: 150,
+  },
+  input_icon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 50,
+    width: 50,
+    borderRadius: 15,
+    backgroundColor: 'black',
+    position: 'absolute',
+    bottom: 1,
+    left: 100
   },
   text_reset: {
     fontSize: 17,
